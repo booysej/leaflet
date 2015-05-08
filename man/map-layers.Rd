@@ -1,4 +1,4 @@
-% Please edit documentation in R/controls.R, R/layers.R
+% Please edit documentation in R/controls.R, R/layers.R, R/plugin-omnivore.R
 \name{addControl}
 \alias{addCircleMarkers}
 \alias{addCircles}
@@ -10,6 +10,7 @@
 \alias{addPopups}
 \alias{addRectangles}
 \alias{addTiles}
+\alias{addTopoJSON}
 \title{Graphics elements and layers}
 \usage{
 addControl(map, html, position = c("topleft", "topright", "bottomleft", 
@@ -51,6 +52,8 @@ addPolygons(map, lng = NULL, lat = NULL, layerId = NULL, stroke = TRUE,
     popup = NULL, options = pathOptions(), data = getMapData(map))
 
 addGeoJSON(map, geojson, layerId = NULL)
+
+addTopoJSON(map, topojson, layerId = NULL)
 }
 \arguments{
 \item{map}{a map widget object created from \code{\link{leaflet}()}}
@@ -129,7 +132,9 @@ pattern}}
 \item{lng1, lat1, lng2, lat2}{latitudes and longitudes of the south-west and
 north-east corners of rectangles}
 
-\item{geojson}{a GeoJSON list}
+\item{geojson}{a GeoJSON list, or character vector of length 1}
+
+\item{topojson}{a TopoJSON list, or character vector of length 1}
 }
 \value{
 the new \code{map} object
@@ -158,6 +163,8 @@ Add graphics elements and layers to the map widget.
 \item \code{addPolygons}: Add polygons to the map
 
 \item \code{addGeoJSON}: Add GeoJSON layers to the map
+
+\item \code{addTopoJSON}: Add TopoJSON layers to the map
 }}
 \references{
 The Leaflet API documentation:
