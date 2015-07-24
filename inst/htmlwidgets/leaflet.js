@@ -500,6 +500,313 @@ var dataframe = (function() {
     this.markers.remove(layerId);
   };
 
+  methods.hideArrows = function(mapname,behaviour,hideid) {
+    var map = $("#"+mapname).data('leaflet-map')
+
+     var svg = d3.select("#"+mapname).select("svg"),
+        linklayer = svg.selectAll("g").filter("g[id='ll']"),
+        nodelayer = svg.selectAll("g").filter("g[id='nl']"),
+        thinglayer = svg.selectAll(".thing");
+
+      linklayer.selectAll("path").remove();
+      linklayer.selectAll("marker").remove();
+
+      nodelayer.selectAll("circle").remove();
+      linklayer.selectAll(".thing").remove();
+
+      //thinglayer.selectAll("textPath").remove();
+      //thinglayer.selectAll("text").remove();
+      //thinglayer.selectAll("use").remove();
+
+  }
+
+  methods.showArrows = function(mapname,jsonfile,linkfile,behaviour,showid) {
+
+    var map = $("#"+mapname).data('leaflet-map')
+    // Initialize the SVG layer
+    map._initPathRoot()
+    console.log(map._container.id)
+
+
+  // Setup svg element to work with
+  var svg = d3.select("#"+mapname).select("svg"),
+    linklayer = svg.append("g").attr("id", "ll"),
+    nodelayer = svg.append("g").attr("id", "nl");
+
+  // Load data asynchronosuly
+  d3.json(jsonfile, function(nodes) {
+    d3.csv(linkfile, function(links) {
+
+    // Setup spatialsankey object
+    var spatialsankey = d3.spatialsankey()
+                            .lmap(map)
+                            .nodes(nodes.features)
+                            .links(links);
+
+    var mouseover = function(d){
+      console.log(map.id + '_arrownode');
+      console.log(d);
+      //mouseout(d);
+      linklayer.selectAll("path").remove();
+      linklayer.selectAll("marker").remove();
+      linklayer.selectAll(".thing").remove();
+      //circs.transition().style('fill', 'darkgrey');
+      circs.style('fill', '#111111');
+      this.style.fill='red';
+
+      Shiny.onInputChange(map.id + '_arrownode', d);
+      this.style.fill='red';
+       /* {
+          lat: e.latlng.lat,
+          lng: e.latlng.lng,
+          '.nonce': Math.random() // Force reactivity if lat/lng hasn't changed
+        }); */
+
+
+
+      // Get link data for this node
+      var nodelinks = spatialsankey.links().filter(function(link){
+        return link.source == d.properties.CODE;
+      });
+
+      // Add data to link layer
+      var beziers = linklayer.selectAll("path").data(nodelinks);
+      link = spatialsankey.link(options);
+
+      // Add data to link layer
+      var markers = linklayer.selectAll("marker").data(nodelinks);
+
+
+
+     var them = markers.enter()
+        .append("marker")
+        .attr('id',"markerArrow")
+        .attr('markerWidth', 13)
+        .attr('markerHeight', 13)
+        .attr('refX', 2)
+        .attr('refY', 6)
+        .attr('orient', 'auto')
+       // .attr("d", link)
+
+    var thepm = them.append("path")
+        .attr("d", "M2,2 L2,11 L10,6 L2,2")
+        .attr("class", "thearrow")
+        .attr("style", "fill: #aaaaff;")
+        //.style("stroke-width", spatialsankey.link().width())
+
+
+
+      // Draw new links
+      beziers.enter()
+        .append("path")
+        .attr("d", link)
+        .attr("class", "flows")
+        .attr('id', function(d){  return d.source+d.target})
+        .style("marker-end", "url(#markerArrow)" )
+        .style("stroke-width", spatialsankey.link().width())
+        //.style("marker-start","url(#markerArrow)")
+
+    var things = linklayer.selectAll("g").data(nodelinks);
+
+    var thet = things.enter().append("g")
+      .attr("id",  function(d){  return 'THING'+d.source+d.target})
+      .attr("class", "thing")
+      .style("fill", "navy")
+
+    var tt = thet.append("text")
+      .style("font-size", "5px")
+      .attr('text-anchor', 'middle')
+      .append("textPath")
+      .attr('startOffset', '70%')
+      .attr("xlink:href",function(d){  return '#'+d.source+d.target})
+      .text(function(d){  return d.text.replace("%flow", d.flow);  })
+
+     tt.transition().style("font-size", "25px");
+
+
+    thet.append("use")
+    .attr("xlink:href",function(d){  return '#'+d.source+d.target})
+    .style("stroke", "black")
+    .style("fill", "none");
+
+
+      // Remove old links
+      //beziers.exit().remove();
+
+      // Hide inactive nodes
+      //var circleUnderMouse = this;
+      //circs.transition().style('opacity',function () {
+      //    return (this === circleUnderMouse) ? 0.7 : 0;
+      //});
+
+    };
+
+    var mouseout = function(d) {
+     // sleepFor(100);
+      // Remove links
+      linklayer.selectAll("path").remove();
+      linklayer.selectAll("marker").remove();
+      //linklayer.selectAll("use").remove();
+      //linklayer.selectAll("textPath").remove();
+      linklayer.selectAll(".thing").remove();
+      // Show all nodes
+      //circs.transition().style('fill', 'darkgrey');
+    };
+
+    // Draw nodes
+    var node = spatialsankey.node()
+
+    console.log(behaviour);
+
+     if (behaviour=="showonclick") {
+        var circs = nodelayer.selectAll("circle")
+      .data(spatialsankey.nodes())
+      .enter()
+      .append("circle")
+      .attr("cx", node.cx)
+      .attr("cy", node.cy)
+      //.attr("r", node.r)
+      .attr("r", 20)
+      //.style("fill", node.fill)
+      //.style("fill", "red")
+      .attr("opacity", 0.3)
+      //.on('mouseover', mouseover)
+      .on('click', mouseover);
+    } else if (behaviour=="showonmouseover") {
+        var circs = nodelayer.selectAll("circle")
+      .data(spatialsankey.nodes())
+      .enter()
+      .append("circle")
+      .attr("cx", node.cx)
+      .attr("cy", node.cy)
+      //.attr("r", node.r)
+      .attr("r", 20)
+      //.style("fill", node.fill)
+      //.style("fill", "red")
+      .attr("opacity", 0.3)
+      .on('mouseover', mouseover)
+      //.on('click', mouseover);
+    } else {
+
+       var circs = nodelayer.selectAll("circle")
+      .data(spatialsankey.nodes())
+      .enter()
+      .append("circle")
+      .attr("cx", node.cx)
+      .attr("cy", node.cy)
+      //.attr("r", node.r)
+      .attr("r", 20)
+      //.style("fill", node.fill)
+      //.style("fill", "red")
+      .attr("opacity", 0.3)
+
+
+     var nodelinks = spatialsankey.links(); // .filter(function(link){return link.source == d.id;});
+
+      // Add data to link layer
+      var beziers = linklayer.selectAll("path").data(nodelinks);
+      link = spatialsankey.link(options);
+
+      // Add data to link layer
+      var markers = linklayer.selectAll("marker").data(nodelinks);
+
+      var hover = function(d){
+        console.log(d);
+      }
+
+
+     var them = markers.enter()
+        .append("marker")
+        .attr('id',"markerArrow")
+        .attr('markerWidth', 13)
+        .attr('markerHeight', 13)
+        .attr('refX', 2)
+        .attr('refY', 6)
+        .attr('orient', 'auto')
+        .on('mouseover', hover)
+        .on('click', hover);
+       // .attr("d", link)
+
+    var thepm = them.append("path")
+        //.attr("d", arrow)
+        .attr("d", "M2,2 L2,11 L10,6 L2,2")
+        .attr("class", "thearrow")
+        //.attr('id', "markerPath")
+        .on('mouseover', hover)
+        .on('click', hover);
+       // .attr("style", "fill: #aaaaff;")
+        //.style("stroke-width", spatialsankey.link().width())
+
+
+
+
+
+
+      // Draw new links
+      beziers.enter()
+        .append("path")
+        .attr("d", link)
+        .attr("class", "flows")
+         .attr('id', function(d){  return d.source+d.target})
+        //.attr('id', function(d){return d.id})
+        .style("marker-end", "url(#markerArrow)" )
+        .style("stroke-width", spatialsankey.link().width())
+        .on('mouseover', hover)
+        .on('click', hover);
+
+
+    var things = linklayer.selectAll("g").data(nodelinks);
+
+    var thet = things.enter().append("g")
+      .attr("id",  function(d){  return 'THING'+d.source+d.target})
+      .attr("class", "thing")
+      .style("fill", "navy")
+
+    thet.append("text")
+      .style("font-size", "25px")
+      .attr('text-anchor', 'middle')
+      .append("textPath")
+      .attr('startOffset', '70%')
+      .attr("xlink:href",function(d){  return '#'+d.source+d.target})
+      .text(function(d){  return d.text.replace("%flow", d.flow);  })
+
+    thet.append("use")
+    .attr("xlink:href",function(d){  return '#'+d.source+d.target})
+    .style("stroke", "black")
+    .style("fill", "none");
+
+
+
+    }
+
+
+
+
+    // Adopt size of drawn objects after leaflet zoom reset
+    var zoomend = function(){
+        linklayer.selectAll("path").filter(".flows").attr("d", spatialsankey.link());
+        linklayer.selectAll("path").filter(".thearrow").attr("d", "M2,2 L2,11 L10,6 L2,2");
+        //linklayer.selectAll("marker").attr("d", spatialsankey.link());
+        circs.attr("cx", node.cx)
+             .attr("cy", node.cy);
+    };
+
+    map.on("zoomend", zoomend);
+  });
+});
+var options = {'use_arcs': false, 'flip': false};
+d3.selectAll("input").forEach(function(x){
+  options[x.name] = parseFloat(x.value);
+})
+
+d3.selectAll("input").on("click", function(){
+  options[this.name] = parseFloat(this.value);
+});
+
+
+
+  };
+
   methods.clearMarkers = function() {
     this.markers.clear();
   };
@@ -725,6 +1032,8 @@ var dataframe = (function() {
         center: [51.505, -0.09],
         zoom: 13
       });
+
+
 
       // Store some state in the map object
       map.leafletr = {

@@ -537,6 +537,22 @@ removeMarker = function(map, layerId) {
   invokeMethod(map, NULL, 'removeMarker', layerId)
 }
 
+#' @describeIn map-methods Show arrows
+#' @param map,mapname,jsonfile,linkfile,behaviour,showid The parameters
+#' @export
+showArrows = function(map,mapname="",jsonfile="",linkfile="",behaviour="showonmouseover",showid="") {
+  invokeMethod(map, NULL, 'showArrows',mapname,jsonfile,linkfile,behaviour,showid)
+}
+
+#' @describeIn map-methods Hide arrows
+#' @param map,behaviour,hideid the Map object
+#' @export
+hideArrows = function(map,mapname="",behaviour="hideall",hideid="") {
+  invokeMethod(map, NULL, 'hideArrows',mapname,behaviour,hideid)
+}
+
+
+
 #' @rdname remove
 #' @export
 clearMarkers = function(map) {

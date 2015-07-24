@@ -12,3 +12,14 @@ dependencies:
     version: 1.0.0
     src: "htmlwidgets/lib/leafletfix"
     stylesheet: leafletfix.css
+  - name: d3
+    version: 3.0.0
+    src: "htmlwidgets/lib/d3"
+    script: d3.v3.min.js
+    stylesheet:
+  - name: spatialsankey
+    version: 0.7.3
+    src: "htmlwidgets/lib/sankey"
+    script: spatialsankey.js
+    stylesheet: sankey.css
+
