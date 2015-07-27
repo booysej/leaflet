@@ -124,7 +124,7 @@ d3.spatialsankey = function() {
     var sx = 0.4,
         sy = 0.1;
     // With range of lines, set min and max to be equal for a constant width.
-    var width_range = {min: 2, max: 5};
+    var width_range = {min: 2, max: 10};
     // If true, links are only shown if there is a flow value for them
     var hide_zero_flows = true;
     // Use arcs instead of S shaped bezier curves

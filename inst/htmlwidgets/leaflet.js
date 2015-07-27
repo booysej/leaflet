@@ -537,14 +537,14 @@ var dataframe = (function() {
     defs.append("svg:marker")
         .attr('id',"markerArrow")
         .attr('markerUnits','userSpaceOnUse')
-        .attr('markerWidth', 26)
-        .attr('markerHeight', 26)
+        .attr('markerWidth', 16)
+        .attr('markerHeight', 16)
         .style("stroke-width", 0.4)
-        .attr('refX', 4)
-        .attr('refY', 12)
+        .attr('refX', 2)
+        .attr('refY', 8)
         .attr('orient', 'auto')
         .append("svg:path")
-        .attr("d", "M4,4 L4,22 L20,12 L4,4")
+        .attr("d", "M2,2 L2,14 L12,8 L2,2")
         .attr("class", "thearrow")
         .attr("style", "fill: #000000;");
 
@@ -606,6 +606,18 @@ var dataframe = (function() {
     var tt = thet.append("text")
      // .style("transform","rotate(180deg)")
      //  .attr("transform", function(d, i) { return "translate(" + x(i)+",0) rotate(-45," + x(1)+"," + 0+") "; })
+      .attr('transform', function(d,i){
+          var source = map.latLngToLayerPoint(d.source_coords),
+              target = map.latLngToLayerPoint(d.target_coords);
+         var mx =  (source.x+target.x)/2;
+         var my = (source.y+target.y)/2;
+
+          if(source.x>target.x) {
+            return('rotate(180,'+mx+','+my+')');
+          } else {
+            return('');
+          }
+        })
       .style("font-size", "5px")
       .attr('text-anchor', 'middle')
       .append("textPath")
@@ -614,7 +626,7 @@ var dataframe = (function() {
       .text(function(d){  return d.text.replace("%flow", d.flow);  })
 
 
-     tt.transition().style("font-size", "20px");
+     tt.transition().style("font-size", "15px");
 
     thet.append("use")
     .attr("xlink:href",function(d){  return '#'+d.source+d.target})
@@ -711,20 +723,39 @@ var dataframe = (function() {
         .on('click', hover);
 
 
+
+
+
     var things = linklayer.selectAll("g").data(nodelinks);
 
     var thet = things.enter().append("g")
       .attr("id",  function(d){  return 'THING'+d.source+d.target})
       .attr("class", "thing")
-      .style("fill", "navy")
+      .style("fill", "black")
 
     thet.append("text")
-      .style("font-size", "20px")
-      .attr('text-anchor', 'middle')
+      .attr("class","thetext")
+      .style("font-size", "15px")
+      .attr('transform', function(d,i){
+          var source = map.latLngToLayerPoint(d.source_coords),
+              target = map.latLngToLayerPoint(d.target_coords);
+         var mx =  (source.x+target.x)/2;
+         var my = (source.y+target.y)/2;
+
+          if(source.x>target.x) {
+            return('rotate(180,'+mx+','+my+')');
+          } else {
+            return('');
+          }
+        })
+      .attr('text-anchor', 'end')
       .append("textPath")
-      .attr('startOffset', '70%')
+      .attr('startOffset', '90%')
       .attr("xlink:href",function(d){  return '#'+d.source+d.target})
-      .text(function(d){  return d.text.replace("%flow", d.flow);  })
+      .text(function(d){  return d.text.replace("%flow", d.flow)   })
+
+
+
 
     thet.append("use")
     .attr("xlink:href",function(d){  return '#'+d.source+d.target})
@@ -742,6 +773,20 @@ var dataframe = (function() {
     var zoomend = function(){
         linklayer.selectAll("path").filter(".flows").attr("d", spatialsankey.link());
         linklayer.selectAll("path").filter(".thearrow").attr("d", "M2,2 L2,11 L10,6 L2,2");
+        linklayer.selectAll("text").filter(".thetext").attr('transform', function(d,i){
+          var source = map.latLngToLayerPoint(d.source_coords),
+              target = map.latLngToLayerPoint(d.target_coords);
+          var mx = (source.x+target.x)/2;
+          var my = (source.y+target.y)/2;
+
+          if(source.x>target.x) {
+            return('rotate(180,'+mx+','+my+')');
+          } else {
+            return('');
+          }
+        })
+
+
         //linklayer.selectAll("marker").attr("d", spatialsankey.link());
         circs.attr("cx", node.cx)
              .attr("cy", node.cy);
