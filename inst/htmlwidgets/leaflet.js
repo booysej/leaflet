@@ -533,25 +533,23 @@ var dataframe = (function() {
     linklayer = svg.append("g").attr("id", "ll"),
     nodelayer = svg.append("g").attr("id", "nl");
 
-      var defs = svg.append('defs')
-      defs.append("svg:marker")
+    var defs = svg.append('defs')
+    defs.append("svg:marker")
         .attr('id',"markerArrow")
-        .attr('markerWidth', 13)
-        .attr('markerHeight', 13)
-        .attr('refX', 2)
-        .attr('refY', 6)
+        .attr('markerUnits','userSpaceOnUse')
+        .attr('markerWidth', 26)
+        .attr('markerHeight', 26)
+        .style("stroke-width", 0.4)
+        .attr('refX', 4)
+        .attr('refY', 12)
         .attr('orient', 'auto')
-        .attr("stroke", "#000000")
-        .attr("stroke-width", "2")
-        .style("fill", "#4682B4")
-        //.attr("markerUnits","strokeWidth")
         .append("svg:path")
-        .attr("d", "M2,2 L2,11 L10,6 L2,2")
+        .attr("d", "M4,4 L4,22 L20,12 L4,4")
         .attr("class", "thearrow")
-        .attr("style", "fill: #aaaaff;");
+        .attr("style", "fill: #000000;");
 
-  // Load data asynchronosuly
-  d3.json(jsonfile, function(nodes) {
+    // Load data asynchronosuly
+    d3.json(jsonfile, function(nodes) {
     d3.csv(linkfile, function(links) {
 
     // Setup spatialsankey object
@@ -560,7 +558,7 @@ var dataframe = (function() {
                             .nodes(nodes.features)
                             .links(links);
 
-    var mouseover = function(d){
+    var mouseover = function(d) {
       console.log(map.id + '_arrownode');
       console.log(d);
       //mouseout(d);
@@ -573,11 +571,7 @@ var dataframe = (function() {
 
       Shiny.onInputChange(map.id + '_arrownode', d);
       this.style.fill='red';
-       /* {
-          lat: e.latlng.lat,
-          lng: e.latlng.lng,
-          '.nonce': Math.random() // Force reactivity if lat/lng hasn't changed
-        }); */
+
 
 
 
@@ -590,32 +584,6 @@ var dataframe = (function() {
       var beziers = linklayer.selectAll("path").data(nodelinks);
       link = spatialsankey.link(options);
 
-
-
-
-/*
-
-      // Add data to link layer
-      var markers = linklayer.selectAll("marker").data(nodelinks);
-
-     var them = markers.enter()
-        .append("marker")
-        //.attr('id', function(d){ return 'markerArrow_'+d.source+d.target})
-        .attr('id',"markerArrow")
-        .attr('markerWidth', 13)
-        .attr('markerHeight', 13)
-        .attr('refX', 2)
-        .attr('refY', 6)
-        .attr('orient', 'auto')
-       // .attr("d", link)
-
-    var thepm = them.append("path")
-        .attr("d", "M2,2 L2,11 L10,6 L2,2")
-        .attr("class", "thearrow")
-        .attr("style", "fill: #aaaaff;")
-        //.style("stroke-width", spatialsankey.link().width())
-
-*/
 
       // Draw new links
       beziers.enter()
@@ -636,6 +604,8 @@ var dataframe = (function() {
       .style("fill", "navy")
 
     var tt = thet.append("text")
+     // .style("transform","rotate(180deg)")
+     //  .attr("transform", function(d, i) { return "translate(" + x(i)+",0) rotate(-45," + x(1)+"," + 0+") "; })
       .style("font-size", "5px")
       .attr('text-anchor', 'middle')
       .append("textPath")
@@ -643,23 +613,13 @@ var dataframe = (function() {
       .attr("xlink:href",function(d){  return '#'+d.source+d.target})
       .text(function(d){  return d.text.replace("%flow", d.flow);  })
 
-     tt.transition().style("font-size", "25px");
 
+     tt.transition().style("font-size", "20px");
 
     thet.append("use")
     .attr("xlink:href",function(d){  return '#'+d.source+d.target})
     .style("stroke", "black")
     .style("fill", "none");
-
-
-      // Remove old links
-      //beziers.exit().remove();
-
-      // Hide inactive nodes
-      //var circleUnderMouse = this;
-      //circs.transition().style('opacity',function () {
-      //    return (this === circleUnderMouse) ? 0.7 : 0;
-      //});
 
     };
 
@@ -729,40 +689,12 @@ var dataframe = (function() {
       var beziers = linklayer.selectAll("path").data(nodelinks);
       link = spatialsankey.link(options);
 
-      // Add data to link layer
-      //var markers = linklayer.selectAll("marker").data(nodelinks);
+
 
       var hover = function(d){
         console.log(d);
       }
 
-/*
-     var them = markers.enter()
-        .append("marker")
-        .attr('id',"markerArrow")
-        //.attr('id', function(d){ return 'markerArrow_'+d.source+d.target})
-        .attr('markerWidth', 13)
-        .attr('markerHeight', 13)
-        .attr('refX', 2)
-        .attr('refY', 6)
-        .attr('orient', 'auto')
-        .on('mouseover', hover)
-        .on('click', hover);
-       // .attr("d", link)
-
-    var thepm = them.append("path")
-        //.attr("d", arrow)
-        .attr("d", "M2,2 L2,11 L10,6 L2,2")
-        .attr("class", "thearrow")
-        //.attr('id', "markerPath")
-        .on('mouseover', hover)
-        .on('click', hover);
-       // .attr("style", "fill: #aaaaff;")
-        //.style("stroke-width", spatialsankey.link().width())
-
-
-
-*/
 
 
       // Draw new links
@@ -787,7 +719,7 @@ var dataframe = (function() {
       .style("fill", "navy")
 
     thet.append("text")
-      .style("font-size", "25px")
+      .style("font-size", "20px")
       .attr('text-anchor', 'middle')
       .append("textPath")
       .attr('startOffset', '70%')
