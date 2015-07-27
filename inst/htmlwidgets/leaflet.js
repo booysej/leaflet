@@ -580,6 +580,7 @@ var dataframe = (function() {
 
      var them = markers.enter()
         .append("marker")
+        //.attr('id', function(d){ return 'markerArrow_'+d.source+d.target})
         .attr('id',"markerArrow")
         .attr('markerWidth', 13)
         .attr('markerHeight', 13)
@@ -602,7 +603,8 @@ var dataframe = (function() {
         .attr("d", link)
         .attr("class", "flows")
         .attr('id', function(d){  return d.source+d.target})
-        .style("marker-end", "url(#markerArrow)" )
+        .attr("marker-end", "url(#markerArrow)" )
+        //.attr('marker-end', function(d,i){ return 'url(#markerArrow_' + d.source  + d.target ')' })
         .style("stroke-width", spatialsankey.link().width())
         //.style("marker-start","url(#markerArrow)")
 
@@ -718,6 +720,7 @@ var dataframe = (function() {
      var them = markers.enter()
         .append("marker")
         .attr('id',"markerArrow")
+        //.attr('id', function(d){ return 'markerArrow_'+d.source+d.target})
         .attr('markerWidth', 13)
         .attr('markerHeight', 13)
         .attr('refX', 2)
@@ -749,7 +752,8 @@ var dataframe = (function() {
         .attr("class", "flows")
          .attr('id', function(d){  return d.source+d.target})
         //.attr('id', function(d){return d.id})
-        .style("marker-end", "url(#markerArrow)" )
+        .attr("marker-end", "url(#markerArrow)" )
+        //.attr('marker-end', function(d,i){ return 'url(#markerArrow_' + d.source  + d.target ')' })
         .style("stroke-width", spatialsankey.link().width())
         .on('mouseover', hover)
         .on('click', hover);
