@@ -533,6 +533,20 @@ var dataframe = (function() {
     linklayer = svg.append("g").attr("id", "ll"),
     nodelayer = svg.append("g").attr("id", "nl");
 
+      var defs = svg.append('defs')
+      defs.append("svg:marker")
+        .attr('id',"markerArrow")
+        .attr('markerWidth', 13)
+        .attr('markerHeight', 13)
+        .attr('refX', 2)
+        .attr('refY', 6)
+        .attr('orient', 'auto')
+        .attr("markerUnits","strokeWidth")
+        .append("svg:path")
+        .attr("d", "M2,2 L2,11 L10,6 L2,2")
+        .attr("class", "thearrow")
+        .attr("style", "fill: #aaaaff;");
+
   // Load data asynchronosuly
   d3.json(jsonfile, function(nodes) {
     d3.csv(linkfile, function(links) {
@@ -573,10 +587,13 @@ var dataframe = (function() {
       var beziers = linklayer.selectAll("path").data(nodelinks);
       link = spatialsankey.link(options);
 
+
+
+
+/*
+
       // Add data to link layer
       var markers = linklayer.selectAll("marker").data(nodelinks);
-
-
 
      var them = markers.enter()
         .append("marker")
@@ -595,7 +612,7 @@ var dataframe = (function() {
         .attr("style", "fill: #aaaaff;")
         //.style("stroke-width", spatialsankey.link().width())
 
-
+*/
 
       // Draw new links
       beziers.enter()
@@ -710,13 +727,13 @@ var dataframe = (function() {
       link = spatialsankey.link(options);
 
       // Add data to link layer
-      var markers = linklayer.selectAll("marker").data(nodelinks);
+      //var markers = linklayer.selectAll("marker").data(nodelinks);
 
       var hover = function(d){
         console.log(d);
       }
 
-
+/*
      var them = markers.enter()
         .append("marker")
         .attr('id',"markerArrow")
@@ -742,7 +759,7 @@ var dataframe = (function() {
 
 
 
-
+*/
 
 
       // Draw new links
