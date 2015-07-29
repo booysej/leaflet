@@ -563,7 +563,7 @@ var dataframe = (function() {
       console.log(d);
       //mouseout(d);
       linklayer.selectAll("path").remove();
-      linklayer.selectAll("marker").remove();
+     // linklayer.selectAll("marker").remove();
       linklayer.selectAll(".thing").remove();
       //circs.transition().style('fill', 'darkgrey');
       circs.style('fill', '#111111');
@@ -592,6 +592,7 @@ var dataframe = (function() {
         .attr("class", "flows")
         .attr('id', function(d){  return d.source+d.target})
         .attr("marker-end", "url(#markerArrow)" )
+        //.attr("marker-end", "url('.thearrow')" )
         //.attr('marker-end', function(d,i){ return 'url(#markerArrow_' + d.source  + d.target ')' })
         .style("stroke-width", spatialsankey.link().width())
         //.style("marker-start","url(#markerArrow)")
@@ -614,6 +615,7 @@ var dataframe = (function() {
 
           if(source.x>target.x) {
             return('rotate(180,'+mx+','+my+')');
+            //return('');
           } else {
             return('');
           }
@@ -628,10 +630,10 @@ var dataframe = (function() {
 
      tt.transition().style("font-size", "15px");
 
-    thet.append("use")
+    /* thet.append("use")
     .attr("xlink:href",function(d){  return '#'+d.source+d.target})
     .style("stroke", "black")
-    .style("fill", "none");
+    .style("fill", "none"); */
 
     };
 
@@ -639,7 +641,7 @@ var dataframe = (function() {
      // sleepFor(100);
       // Remove links
       linklayer.selectAll("path").remove();
-      linklayer.selectAll("marker").remove();
+      //linklayer.selectAll("marker").remove();
       //linklayer.selectAll("use").remove();
       //linklayer.selectAll("textPath").remove();
       linklayer.selectAll(".thing").remove();
@@ -743,6 +745,7 @@ var dataframe = (function() {
          var my = (source.y+target.y)/2;
 
           if(source.x>target.x) {
+            //return('');
             return('rotate(180,'+mx+','+my+')');
           } else {
             return('');
@@ -757,10 +760,10 @@ var dataframe = (function() {
 
 
 
-    thet.append("use")
+    /* thet.append("use")
     .attr("xlink:href",function(d){  return '#'+d.source+d.target})
     .style("stroke", "black")
-    .style("fill", "none");
+    .style("fill", "none"); */
 
 
 
@@ -781,6 +784,7 @@ var dataframe = (function() {
 
           if(source.x>target.x) {
             return('rotate(180,'+mx+','+my+')');
+            //return('');
           } else {
             return('');
           }

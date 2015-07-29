@@ -151,12 +151,10 @@ d3.spatialsankey = function() {
       var source = map.latLngToLayerPoint(d.source_coords),
           target = map.latLngToLayerPoint(d.target_coords);
 
-      //target.x = target.x - 50;
-      //target.y = target.y - 50;
+
       var dx = source.x - target.x,
           dy = source.y - target.y;
 
-      //console.log(d.flow);
 
        var diff = d.flow - link_flow_range.min,
             range = link_flow_range.max - link_flow_range.min;
@@ -168,6 +166,8 @@ d3.spatialsankey = function() {
       target.y = source.y - dy*(temp);
       dx = source.x - target.x,
       dy = source.y - target.y;
+
+
 
       // Determine control point locations for different link styles
       if(!arcs){
@@ -187,8 +187,10 @@ d3.spatialsankey = function() {
       return "M" + source.x + "," + source.y
            + "C" + (source.x - controls[0]) + "," + (source.y - controls[1])
            + " " + (target.x + controls[2]) + "," + (target.y + controls[3])
-           //+ " " + (target.x + controls[2]) + "," + (target.y + controls[3]);
-           + " " + target.x + "," + target.y;
+           + " " + target.x + "," + target.y
+           ;
+
+
     };
 
 
