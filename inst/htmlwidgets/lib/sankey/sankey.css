@@ -1,3 +1,4 @@
+/*
 .thearrow {
   fill: #4682B4;
   stroke: #000000;
@@ -9,7 +10,7 @@
 
 .thearrow:hover {
   fill: #00ffff;
-}
+} */
 
 .flows {
   fill: none;
@@ -22,6 +23,8 @@
   stroke-opacity: 1;
   stroke: #111111;
 }
+
+/*
 marker {
   fill: #4682B4;
   stroke: #4682B4;
@@ -32,7 +35,7 @@ marker {
 marker:hover {
   stroke-opacity: 0.8;
   stroke: #315B7E;
-}
+} */
 
 .curvesettings {
   position: absolute;

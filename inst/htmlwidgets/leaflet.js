@@ -535,7 +535,9 @@ var dataframe = (function() {
     nodelayer = svg.append("g").attr("id", "nl");
 
     var defs = svg.append('defs')
-    defs.append("svg:marker")
+
+
+    defs.append("marker")
         .attr('id',"markerArrow")
         .attr('markerUnits','userSpaceOnUse')
         .attr('markerWidth', 16)
