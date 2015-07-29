@@ -509,7 +509,8 @@ var dataframe = (function() {
         thinglayer = svg.selectAll(".thing");
 
       linklayer.selectAll("path").remove();
-      linklayer.selectAll("marker").remove();
+      //linklayer.selectAll("marker").remove();
+      //svg.selectAll("marker").remove();
 
       nodelayer.selectAll("circle").remove();
       linklayer.selectAll(".thing").remove();
@@ -563,7 +564,7 @@ var dataframe = (function() {
       console.log(d);
       //mouseout(d);
       linklayer.selectAll("path").remove();
-     // linklayer.selectAll("marker").remove();
+      linklayer.selectAll("marker").remove();
       linklayer.selectAll(".thing").remove();
       //circs.transition().style('fill', 'darkgrey');
       circs.style('fill', '#111111');
@@ -641,7 +642,7 @@ var dataframe = (function() {
      // sleepFor(100);
       // Remove links
       linklayer.selectAll("path").remove();
-      //linklayer.selectAll("marker").remove();
+      linklayer.selectAll("marker").remove();
       //linklayer.selectAll("use").remove();
       //linklayer.selectAll("textPath").remove();
       linklayer.selectAll(".thing").remove();
