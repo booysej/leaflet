@@ -720,7 +720,7 @@ var dataframe = (function() {
         .append("path")
         .attr("d", link)
         .attr("class", "flows")
-         .attr('id', function(d){  return d.source+d.target})
+         .attr('id', function(d){  return mapname+d.source+d.target})
         //.attr('id', function(d){return d.id})
         .attr("marker-end", "url(#markerArrow)" )
         .attr("style", "marker-end: url(#markerArrow);")
@@ -736,7 +736,7 @@ var dataframe = (function() {
     var things = linklayer.selectAll("g").data(nodelinks);
 
     var thet = things.enter().append("g")
-      .attr("id",  function(d){  return 'THING'+d.source+d.target})
+      .attr("id",  function(d){  return 'THING'+mapname+d.source+d.target})
       .attr("class", "thing")
       .style("fill", "black")
 
@@ -759,7 +759,7 @@ var dataframe = (function() {
       .attr('text-anchor', 'end')
       .append("textPath")
       .attr('startOffset', '90%')
-      .attr("xlink:href",function(d){  return '#'+d.source+d.target})
+      .attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
       .text(function(d){  return d.text.replace("%flow", d.flow)   })
 
 
