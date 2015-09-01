@@ -184,11 +184,15 @@ d3.spatialsankey = function() {
         }
       }
 
+
+
+
       return "M" + source.x + "," + source.y
            + "C" + (source.x - controls[0]) + "," + (source.y - controls[1])
            + " " + (target.x + controls[2]) + "," + (target.y + controls[3])
            + " " + target.x + "," + target.y
            ;
+
 
 
     };
@@ -219,6 +223,126 @@ d3.spatialsankey = function() {
 
     return link;
   };
+
+  spatialsankey.link2 = function(options) {
+
+    // Link styles
+    // x and y shifts for control points
+    var sx = 0.4,
+        sy = 0.1;
+    // With range of lines, set min and max to be equal for a constant width.
+    var width_range = {min: 2, max: 10};
+    // If true, links are only shown if there is a flow value for them
+    var hide_zero_flows = true;
+    // Use arcs instead of S shaped bezier curves
+    var arcs = false;
+    // If true, lines are flipped along x axis
+    var flip = false;
+
+    // Customize link styles using options
+    if(options){
+      if(options.xshift) sx = options.xshift;
+      if(options.yshift) sy = options.yshift;
+      if(options.minwidth) width_range.min = options.minwidth;
+      if(options.maxwidth) width_range.max = options.maxwidth;
+      if(options.use_arcs) arcs = options.use_arcs;
+      if(options.flip) flip = options.flip;
+    }
+
+
+
+
+    // Define path drawing function
+    var link = function(d) {
+      // Set control point inputs
+      var source = map.latLngToLayerPoint(d.source_coords),
+          target = map.latLngToLayerPoint(d.target_coords);
+
+
+      var dx = source.x - target.x,
+          dy = source.y - target.y;
+
+
+       var diff = d.flow - link_flow_range.min,
+            range = link_flow_range.max - link_flow_range.min;
+       var temp = (15 - 1)*(diff/range) + 5;
+       temp = temp/100
+       temp = 1 - 1*(temp)
+
+      target.x = source.x - dx*(temp);
+      target.y = source.y - dy*(temp);
+      dx = source.x - target.x,
+      dy = source.y - target.y;
+
+
+
+      // Determine control point locations for different link styles
+      if(!arcs){
+        if(dy < 0 || flip){
+          var controls = [sx*dx, sy*dy, sx*dx, sy*dy]
+        } else {
+          var controls = [sy*dx, sx*dy, sy*dx, sx*dy]
+        }
+      } else  {
+        if(dy < 0 || flip){
+          var controls = [sx*dx, sy*dy, sy*dx, sx*dy];
+        } else {
+          var controls = [sy*dx, sx*dy, sx*dx, sy*dy];
+        }
+      }
+
+
+
+      var dx2 = target.x - source.x,
+        dy2 = target.y - source.y,
+        dr2 = Math.sqrt(dx2 * dx2 + dy2 * dy2),
+        theta = Math.atan2(dy2, dx2) + Math.PI / 40.85,
+        d90 = Math.PI / 2,
+        dtxs = target.x + 16 * Math.cos(theta),
+        dtys = target.y + 16 * Math.sin(theta);
+
+    return "M" + dtxs + "," + dtys +  "l" + (5.6 * Math.cos(d90 - theta) - 16 * Math.cos(theta)) + "," + (-5.6 * Math.sin(d90 - theta) - 16 * Math.sin(theta)) + "L" + (dtxs - 5.6 * Math.cos(d90 - theta) - 16 * Math.cos(theta)) + "," + (dtys + 5.6 * Math.sin(d90 - theta) - 16 * Math.sin(theta)) + "z";
+
+
+
+   /*   return "M" + source.x + "," + source.y
+           + "C" + (source.x - controls[0]) + "," + (source.y - controls[1])
+           + " " + (target.x + controls[2]) + "," + (target.y + controls[3])
+           + " " + target.x + "," + target.y
+           ;
+  */
+
+
+    };
+
+
+
+
+// Define path drawing function
+
+
+
+    // Calculate width based on data range and width range setting
+    var width = function(d) {
+          // Don't draw flows with zero flow unless zero is the minimum
+          if(d.flow == 0 && link_flow_range.min != 0) return 0;
+          // Calculate width value based on flow range
+          var diff = d.flow - link_flow_range.min,
+              range = link_flow_range.max - link_flow_range.min;
+          return (width_range.max - width_range.min)*(diff/range) + width_range.min;
+        };
+
+    // Get or set link width function
+    link.width = function(_) {
+      if (!arguments.length) return width;
+      width = _;
+      return width;
+    };
+
+    return link;
+  };
+
+
 
   // Draw node circle
   spatialsankey.node = function(options){

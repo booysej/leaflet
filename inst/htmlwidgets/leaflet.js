@@ -536,7 +536,6 @@ var dataframe = (function() {
 
     var defs = svg.append('defs')
 
-
     defs.append("marker")
         .attr('id',"markerArrow")
         .attr('markerUnits','userSpaceOnUse')
@@ -550,6 +549,7 @@ var dataframe = (function() {
         .attr("d", "M2,2 L2,14 L12,8 L2,2")
         .attr("class", "thearrow")
         .attr("style", "fill: #000000;");
+
 
     // Load data asynchronosuly
     d3.json(jsonfile, function(nodes) {
@@ -706,6 +706,7 @@ var dataframe = (function() {
       // Add data to link layer
       var beziers = linklayer.selectAll("path").data(nodelinks);
       link = spatialsankey.link(options);
+      link2 = spatialsankey.link2(options);
 
 
 
@@ -722,12 +723,27 @@ var dataframe = (function() {
         .attr("class", "flows")
          .attr('id', function(d){  return mapname+d.source+d.target})
         //.attr('id', function(d){return d.id})
-        .attr("marker-end", "url(#markerArrow)" )
-        .attr("style", "marker-end: url(#markerArrow);")
+         //.attr("marker-end", "url(#markerArrow)" )
+        // .attr("style", "marker-end: url(#markerArrow);")
         //.attr('marker-end', function(d,i){ return 'url(#markerArrow_' + d.source  + d.target ')' })
         .style("stroke-width", spatialsankey.link().width())
         .on('mouseover', hover)
-        .on('click', hover);
+        .on('click', hover)
+
+        beziers.enter()
+        .append("path")
+        .attr("d", link2)
+        .attr("class", "flows2")
+        .attr('id', function(d){  return 'arrow'+mapname+d.source+d.target})
+        //.attr('id', function(d){return d.id})
+        ///// .attr("marker-end", "url(#markerArrow)" )
+        ///// .attr("style", "marker-end: url(#markerArrow);")
+        //.attr('marker-end', function(d,i){ return 'url(#markerArrow_' + d.source  + d.target ')' })
+        //.style("stroke-width", 10)
+        .style('stroke', 'white')
+        .style('stroke-width', '1.8')
+        .style('fill', 'black');
+
 
 
 
@@ -780,6 +796,7 @@ var dataframe = (function() {
     // Adopt size of drawn objects after leaflet zoom reset
     var zoomend = function(){
         linklayer.selectAll("path").filter(".flows").attr("d", spatialsankey.link());
+        linklayer.selectAll("path").filter(".flows2").attr("d", spatialsankey.link2());
         linklayer.selectAll("path").filter(".thearrow").attr("d", "M2,2 L2,11 L10,6 L2,2");
         linklayer.selectAll("text").filter(".thetext").attr('transform', function(d,i){
           var source = map.latLngToLayerPoint(d.source_coords),
