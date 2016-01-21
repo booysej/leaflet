@@ -54,6 +54,36 @@ bboxAdd = function(a, b) {
   )
 }
 
+#' @param group the name of the group whose members should be removed
+#' @rdname remove
+#' @export
+clearGroup <- function(map, group) {
+  invokeMethod(map, getMapData(map), 'clearGroup', group);
+}
+
+#' Show or hide layer groups
+#'
+#' Hide groups of layers without removing them from the map entirely. Groups are
+#' created using the \code{group} parameter that is included on most layer
+#' adding functions.
+#'
+#' @param map the map to modify
+#' @param group character vector of one or more group names to show or hide
+#'
+#' @seealso \code{\link{addLayersControl}} to allow users to show/hide layer
+#'   groups interactively
+#'
+#' @export
+showGroup = function(map, group) {
+  invokeMethod(map, getMapData(map), 'showGroup', group)
+}
+
+#' @rdname showGroup
+#' @export
+hideGroup = function(map, group) {
+  invokeMethod(map, getMapData(map), 'hideGroup', group)
+}
+
 #' Graphics elements and layers
 #'
 #' Add graphics elements and layers to the map widget.
@@ -75,6 +105,7 @@ addTiles = function(
   urlTemplate = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   attribution = NULL,
   layerId = NULL,
+  group = NULL,
   options = tileOptions()
 ) {
   options$attribution = attribution
@@ -83,7 +114,124 @@ addTiles = function(
       '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
       'contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
     )
-  invokeMethod(map, getMapData(map), 'addTiles', urlTemplate, layerId, options)
+  invokeMethod(map, getMapData(map), 'addTiles', urlTemplate, layerId, group,
+    options)
+}
+
+epsg4326 <- "+proj=longlat +datum=WGS84 +no_defs"
+epsg3857 <- "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs"
+
+#' Add a raster image as a layer
+#'
+#' Create an image overlay from a \code{RasterLayer} object. \emph{This is only
+#' suitable for small to medium sized rasters}, as the entire image will be
+#' embedded into the HTML page (or passed over the websocket in a Shiny
+#' context).
+#'
+#' The \code{maxBytes} parameter serves to prevent you from accidentally
+#' embedding an excessively large amount of data into your htmlwidget. This
+#' value is compared to the size of the final compressed image (after the raster
+#' has been projected, colored, and PNG encoded, but before base64 encoding is
+#' applied). Set \code{maxBytes} to \code{Inf} to disable this check, but be
+#' aware that very large rasters may not only make your map a large download but
+#' also may cause the browser to become slow or unresponsive.
+#'
+#' By default, the \code{addRasterImage} function will project the RasterLayer
+#' \code{x} to EPSG:3857 using the \code{raster} package's
+#' \code{\link[raster]{projectRaster}} function. This can be a time-consuming
+#' operation for even moderately sized rasters. Upgrading the \code{raster}
+#' package to 2.4 or later will provide a large speedup versus previous
+#' versions. If you are repeatedly adding a particular raster to your Leaflet
+#' maps, you can perform the projection ahead of time using
+#' \code{projectRasterForLeaflet()}, and call \code{addRasterImage} with
+#' \code{project=FALSE}.
+#'
+#' @param map a map widget object
+#' @param x a \code{RasterLayer} object--see \code{\link[raster]{raster}}
+#' @param colors the color palette (see \code{\link{colorNumeric}}) or function
+#'   to use to color the raster values (hint: if providing a function, set
+#'   \code{na.color} to \code{"#00000000"} to make \code{NA} areas transparent)
+#' @param opacity the base opacity of the raster, expressed from 0 to 1
+#' @param attribution the HTML string to show as the attribution for this layer
+#' @param layerId the layer id
+#' @param group the name of the group this raster image should belong to (see
+#'   the same parameter under \code{\link{addTiles}})
+#' @param project if \code{TRUE}, automatically project \code{x} to the map
+#'   projection expected by Leaflet (\code{EPSG:3857}); if \code{FALSE}, it's
+#'   the caller's responsibility to ensure that \code{x} is already projected,
+#'   and that \code{extent(x)} is expressed in WGS84 latitude/longitude
+#'   coordinates
+#' @param maxBytes the maximum number of bytes to allow for the projected image
+#'   (before base64 encoding); defaults to 4MB.
+#'
+#' @examples
+#' library(raster)
+#'
+#' r <- raster(xmn=-2.8, xmx=-2.79, ymn=54.04, ymx=54.05, nrows=30, ncols=30)
+#' values(r) <- matrix(1:900, nrow(r), ncol(r), byrow = TRUE)
+#' crs(r) <- CRS("+init=epsg:4326")
+#'
+#' leaflet() %>% addTiles() %>%
+#'   addRasterImage(r, colors = "Spectral", opacity = 0.8)
+#' @export
+addRasterImage = function(
+  map,
+  x,
+  colors = "Spectral",
+  opacity = 1,
+  attribution = NULL,
+  layerId = NULL,
+  group = NULL,
+  project = TRUE,
+  maxBytes = 4*1024*1024
+) {
+  stopifnot(inherits(x, "RasterLayer"))
+
+  if (project) {
+    projected <- projectRasterForLeaflet(x)
+  } else {
+    projected <- x
+  }
+  bounds <- raster::extent(raster::projectExtent(raster::projectExtent(x, crs = sp::CRS(epsg3857)), crs = sp::CRS(epsg4326)))
+
+  if (!is.function(colors)) {
+    colors <- colorNumeric(colors, domain = NULL, na.color = "#00000000", alpha = TRUE)
+  }
+
+  tileData <- raster::values(projected) %>% colors() %>% col2rgb(alpha = TRUE) %>% as.raw()
+  dim(tileData) <- c(4, ncol(projected), nrow(projected))
+  pngData <- png::writePNG(tileData)
+  if (length(pngData) > maxBytes) {
+    stop("Raster image too large; ", length(pngData), " bytes is greater than maximum ", maxBytes, " bytes")
+  }
+  encoded <- base64enc::base64encode(pngData)
+  uri <- paste0("data:image/png;base64,", encoded)
+
+  latlng <- list(
+    list(raster::ymax(bounds), raster::xmin(bounds)),
+    list(raster::ymin(bounds), raster::xmax(bounds))
+  )
+
+  invokeMethod(map, getMapData(map), "addRasterImage", uri, latlng, opacity, attribution, layerId, group) %>%
+    expandLimits(c(raster::ymin(bounds), raster::ymax(bounds)), c(raster::xmin(bounds), raster::xmax(bounds)))
+}
+
+#' @rdname addRasterImage
+#' @export
+projectRasterForLeaflet <- function(x) {
+  raster::projectRaster(x, raster::projectExtent(x, crs = sp::CRS(epsg3857)))
+}
+
+#' @rdname remove
+#' @export
+removeImage = function(map, layerId) {
+  invokeMethod(map, NULL, 'removeImage', layerId)
+}
+
+#' @rdname remove
+#' @export
+clearImages = function(map) {
+  invokeMethod(map, NULL, 'clearImages')
 }
 
 #' Extra options for map elements and layers
@@ -130,7 +278,7 @@ tileOptions = function(
 #' Remove elements from a map
 #'
 #' Remove one or more features from a map, identified by \code{layerId}; or,
-#' clear all features of the given type.
+#' clear all features of the given type or group.
 #'
 #' @note When used with a \code{\link{leaflet}}() map object, these functions
 #'   don't actually remove the features from the map object, but simply add an
@@ -154,7 +302,7 @@ tileOptions = function(
 #' @name remove
 #' @export
 removeTiles = function(map, layerId) {
-  invokeMethod(map, NULL, 'removeTiles', layerId)
+  invokeMethod(map, getMapData(map), 'removeTiles', layerId)
 }
 
 #' @rdname remove
@@ -169,12 +317,12 @@ clearTiles = function(map) {
 #' @describeIn map-layers Add a WMS tile layer to the map
 #' @export
 addWMSTiles = function(
-  map, baseUrl, layerId = NULL,
+  map, baseUrl, layerId = NULL, group = NULL,
   options = WMSTileOptions(), attribution = NULL, layers = ''
 ) {
   options$attribution = attribution
   options$layers = layers
-  invokeMethod(map, getMapData(map), 'addWMSTiles', baseUrl, layerId, options)
+  invokeMethod(map, getMapData(map), 'addWMSTiles', baseUrl, layerId, group, options)
 }
 
 #' @param styles comma-separated list of WMS styles
@@ -211,18 +359,23 @@ WMSTileOptions = function(
 #'   recommended to escape the text using \code{\link[htmltools]{htmlEscape}()}
 #'   for security reasons)
 #' @param layerId the layer id
+#' @param group the name of the group the newly created layers should belong to
+#'   (for \code{\link{clearGroup}} and \code{\link{addLayersControl}} purposes).
+#'   Human-friendly group names are permitted--they need not be short,
+#'   identifier-style names. Any number of layers and even different types of
+#'   layers (e.g. markers and polygons) can share the same group name.
 #' @param data the data object from which the argument values are derived; by
 #'   default, it is the \code{data} object provided to \code{leaflet()}
 #'   initially, but can be overridden
 #' @describeIn map-layers Add popups to the map
 #' @export
 addPopups = function(
-  map, lng = NULL, lat = NULL, popup, layerId = NULL,
+  map, lng = NULL, lat = NULL, popup, layerId = NULL, group = NULL,
   options = popupOptions(),
   data = getMapData(map)
 ) {
   pts = derivePoints(data, lng, lat, missing(lng), missing(lat), "addPopups")
-  invokeMethod(map, data, 'addPopups', pts$lat, pts$lng, popup, layerId, options) %>%
+  invokeMethod(map, data, 'addPopups', pts$lat, pts$lng, popup, layerId, group, options) %>%
     expandLimits(pts$lat, pts$lng)
 }
 
@@ -257,7 +410,7 @@ popupOptions = function(
 #' @rdname remove
 #' @export
 removePopup = function(map, layerId) {
-  invokeMethod(map, NULL, 'removePopup', layerId)
+  invokeMethod(map, getMapData(map), 'removePopup', layerId)
 }
 
 #' @rdname remove
@@ -266,19 +419,69 @@ clearPopups = function(map) {
   invokeMethod(map, NULL, 'clearPopups')
 }
 
+# Helper Function to create a safe label
+safeLabel <- function(label, data) {
+  if (is.null(label)) {
+    return(label)
+  }
+
+  label <- evalFormula(label, data)
+  if(! (inherits(label, "html") ||
+                    sum(sapply(label,function(x){!inherits(x,'html')})) == 0)) {
+    label <- htmltools::htmlEscape(label)
+  }
+  label
+}
+
+#' Extra options for marker and polygon labels
+#'
+#' @param
+#' noHide,direction,offset
+#' label options; see \url{https://github.com/Leaflet/Leaflet.label#options}
+#' @describeIn map-options Options for labels
+#' @export
+labelOptions = function(
+  clickable = FALSE,
+  noHide = FALSE,
+  className = '',
+  direction = 'right',
+  #pane = NULL,
+  offset = c(12,-15),
+  opacity = 1,
+  zoomAnimation = TRUE
+) {
+  list(
+    clickable = clickable, noHide = noHide, direction = direction,
+    opacity = opacity, offset = offset,
+    zoomAnimation = zoomAnimation, className = className
+  )
+}
+
 #' @param icon the icon(s) for markers; an icon is represented by an R list of
 #'   the form \code{list(iconUrl = '?', iconSize = c(x, y))}, and you can use
-#'   \code{\link{icons}()} to create multiple icons; note when you use an R
-#'   list that contains images as local files, these local image files will be
-#'   base64 encoded into the HTML page so the icon images will still be
-#'   available even when you publish the map elsewhere
+#'   \code{\link{icons}()} to create multiple icons; note when you use an R list
+#'   that contains images as local files, these local image files will be base64
+#'   encoded into the HTML page so the icon images will still be available even
+#'   when you publish the map elsewhere
+#' @param label a character vector of the HTML content for the labels
+#' @param labelOptions A Vector of \code{\link{labelOptions}} to provide label
+#' options for each label. Default \code{NULL}
+#' @param clusterOptions if not \code{NULL}, markers will be clustered using
+#'   \href{https://github.com/Leaflet/Leaflet.markercluster}{Leaflet.markercluster};
+#'    you can use \code{\link{markerClusterOptions}()} to specify marker cluster
+#'   options
+#' @param clusterId the id for the marker cluster layer
 #' @describeIn map-layers Add markders to the map
 #' @export
 addMarkers = function(
-  map, lng = NULL, lat = NULL, layerId = NULL,
+  map, lng = NULL, lat = NULL, layerId = NULL, group = NULL,
   icon = NULL,
   popup = NULL,
+  label = NULL,
+  labelOptions = NULL,
   options = markerOptions(),
+  clusterOptions = NULL,
+  clusterId = NULL,
   data = getMapData(map)
 ) {
   if (!is.null(icon)) {
@@ -303,9 +506,26 @@ addMarkers = function(
     icon = filterNULL(icon)
   }
 
+  if (!is.null(clusterOptions))
+    map$dependencies = c(map$dependencies, markerClusterDependencies())
+
   pts = derivePoints(data, lng, lat, missing(lng), missing(lat), "addMarkers")
-  invokeMethod(map, data, 'addMarkers', pts$lat, pts$lng, icon, layerId, options, popup) %>%
-    expandLimits(pts$lat, pts$lng)
+  invokeMethod(
+    map, data, 'addMarkers', pts$lat, pts$lng, icon, layerId, group, options, popup,
+    clusterOptions, clusterId, safeLabel(label, data), labelOptions
+  ) %>% expandLimits(pts$lat, pts$lng)
+}
+
+markerClusterDependencies = function() {
+  list(
+    htmltools::htmlDependency(
+      'leaflet-markercluster',
+      '0.4.0',
+      system.file('htmlwidgets/plugins/Leaflet.markercluster', package = 'leaflet'),
+      script = 'leaflet.markercluster.js',
+      stylesheet = c('MarkerCluster.css', 'MarkerCluster.Default.css')
+    )
+  )
 }
 
 #' Make icon set
@@ -490,6 +710,27 @@ markerOptions = function(
   )
 }
 
+#' @param showCoverageOnHover when you mouse over a cluster it shows the bounds
+#'   of its markers
+#' @param zoomToBoundsOnClick when you click a cluster we zoom to its bounds
+#' @param spiderfyOnMaxZoom when you click a cluster at the bottom zoom level we
+#'   spiderfy it so you can see all of its markers
+#' @param removeOutsideVisibleBounds clusters and markers too far from the
+#'   viewport are removed from the map for performance
+#' @describeIn map-options Options for marker clusters
+#' @export
+markerClusterOptions = function(
+  showCoverageOnHover = TRUE, zoomToBoundsOnClick = TRUE,
+  spiderfyOnMaxZoom = TRUE, removeOutsideVisibleBounds = TRUE, ...
+) {
+  list(
+    showCoverageOnHover = showCoverageOnHover,
+    zoomToBoundsOnClick = zoomToBoundsOnClick,
+    spiderfyOnMaxZoom = spiderfyOnMaxZoom,
+    removeOutsideVisibleBounds = removeOutsideVisibleBounds, ...
+  )
+}
+
 #' @param radius a numeric vector of radii for the circles; it can also be a
 #'   one-sided formula, in which case the radius values are derived from the
 #'   \code{data} (units in meters for circles, and pixels for circle markers)
@@ -508,7 +749,7 @@ markerOptions = function(
 #' @describeIn map-layers Add circle markers to the map
 #' @export
 addCircleMarkers = function(
-  map, lng = NULL, lat = NULL, radius = 10, layerId = NULL,
+  map, lng = NULL, lat = NULL, radius = 10, layerId = NULL, group = NULL,
   stroke = TRUE,
   color = "#03F",
   weight = 5,
@@ -518,7 +759,11 @@ addCircleMarkers = function(
   fillOpacity = 0.2,
   dashArray = NULL,
   popup = NULL,
+  label = NULL,
+  labelOptions = NULL,
   options = pathOptions(),
+  clusterOptions = NULL,
+  clusterId = NULL,
   data = getMapData(map)
 ) {
   options = c(options, list(
@@ -526,15 +771,18 @@ addCircleMarkers = function(
     fill = fill, fillColor = fillColor, fillOpacity = fillOpacity,
     dashArray = dashArray
   ))
+  if (!is.null(clusterOptions))
+    map$dependencies = c(map$dependencies, markerClusterDependencies())
   pts = derivePoints(data, lng, lat, missing(lng), missing(lat), "addCircleMarkers")
-  invokeMethod(map, data, 'addCircleMarkers', pts$lat, pts$lng, radius, layerId, options, popup) %>%
+  invokeMethod(map, data, 'addCircleMarkers', pts$lat, pts$lng, radius,
+      layerId, group, options, clusterOptions, clusterId, popup, safeLabel(label, data), labelOptions) %>%
     expandLimits(pts$lat, pts$lng)
 }
 
 #' @rdname remove
 #' @export
 removeMarker = function(map, layerId) {
-  invokeMethod(map, NULL, 'removeMarker', layerId)
+  invokeMethod(map, getMapData(map), 'removeMarker', layerId)
 }
 
 #' @describeIn map-methods Show arrows
@@ -557,6 +805,25 @@ hideArrows = function(map,mapname="",behaviour="hideall",hideid="") {
 #' @export
 clearMarkers = function(map) {
   invokeMethod(map, NULL, 'clearMarkers')
+}
+
+#' @rdname remove
+#' @export
+removeMarkerCluster = function(map, layerId) {
+  invokeMethod(map, getMapData(map), 'removeMarkerCluster', layerId)
+}
+
+#' @rdname remove
+#' @export
+clearMarkerClusters = function(map) {
+  invokeMethod(map, NULL, 'clearMarkerClusters')
+}
+
+#' @param clusterId the id of the marker cluster layer
+#' @rdname remove
+#' @export
+removeMarkerFromCluster = function(map, layerId, clusterId) {
+  invokeMethod(map, getMapData(map), 'removeMarkerFromCluster', layerId, clusterId)
 }
 
 #' @param lineCap a string that defines
@@ -586,7 +853,7 @@ pathOptions = function(
 #' @describeIn map-layers Add circles to the map
 #' @export
 addCircles = function(
-  map, lng = NULL, lat = NULL, radius = 10, layerId = NULL,
+  map, lng = NULL, lat = NULL, radius = 10, layerId = NULL, group = NULL,
   stroke = TRUE,
   color = "#03F",
   weight = 5,
@@ -596,6 +863,8 @@ addCircles = function(
   fillOpacity = 0.2,
   dashArray = NULL,
   popup = NULL,
+  label = NULL,
+  labelOptions = NULL,
   options = pathOptions(),
   data = getMapData(map)
 ) {
@@ -605,7 +874,7 @@ addCircles = function(
     dashArray = dashArray
   ))
   pts = derivePoints(data, lng, lat, missing(lng), missing(lat), "addCircles")
-  invokeMethod(map, data, 'addCircles', pts$lat, pts$lng, radius, layerId, options, popup) %>%
+  invokeMethod(map, data, 'addCircles', pts$lat, pts$lng, radius, layerId, group, options, popup, safeLabel(label, data), labelOptions) %>%
     expandLimits(pts$lat, pts$lng)
 }
 
@@ -615,7 +884,7 @@ addCircles = function(
 #' @describeIn map-layers Add polylines to the map
 #' @export
 addPolylines = function(
-  map, lng = NULL, lat = NULL, layerId = NULL,
+  map, lng = NULL, lat = NULL, layerId = NULL, group = NULL,
   stroke = TRUE,
   color = "#03F",
   weight = 5,
@@ -627,6 +896,8 @@ addPolylines = function(
   smoothFactor = 1.0,
   noClip = FALSE,
   popup = NULL,
+  label = NULL,
+  labelOptions = NULL,
   options = pathOptions(),
   data = getMapData(map)
 ) {
@@ -636,7 +907,7 @@ addPolylines = function(
     dashArray = dashArray, smoothFactor = smoothFactor, noClip = noClip
   ))
   pgons = derivePolygons(data, lng, lat, missing(lng), missing(lat), "addPolylines")
-  invokeMethod(map, data, 'addPolylines', pgons, layerId, options, popup) %>%
+  invokeMethod(map, data, 'addPolylines', pgons, layerId, group, options, popup, safeLabel(label, data), labelOptions) %>%
     expandLimitsBbox(pgons)
 }
 
@@ -645,7 +916,7 @@ addPolylines = function(
 #' @describeIn map-layers Add rectangles to the map
 #' @export
 addRectangles = function(
-  map, lng1, lat1, lng2, lat2, layerId = NULL,
+  map, lng1, lat1, lng2, lat2, layerId = NULL, group = NULL,
   stroke = TRUE,
   color = "#03F",
   weight = 5,
@@ -657,6 +928,8 @@ addRectangles = function(
   smoothFactor = 1.0,
   noClip = FALSE,
   popup = NULL,
+  label = NULL,
+  labelOptions = NULL,
   options = pathOptions(),
   data = getMapData(map)
 ) {
@@ -669,14 +942,14 @@ addRectangles = function(
   lat1 = resolveFormula(lat1, data)
   lng2 = resolveFormula(lng2, data)
   lat2 = resolveFormula(lat2, data)
-  invokeMethod(map, data, 'addRectangles',lat1, lng1, lat2, lng2, layerId, options, popup) %>%
+  invokeMethod(map, data, 'addRectangles',lat1, lng1, lat2, lng2, layerId, group, options, popup, safeLabel(label, data), labelOptions) %>%
     expandLimits(c(lat1, lat2), c(lng1, lng2))
 }
 
 #' @describeIn map-layers Add polygons to the map
 #' @export
 addPolygons = function(
-  map, lng = NULL, lat = NULL, layerId = NULL,
+  map, lng = NULL, lat = NULL, layerId = NULL, group = NULL,
   stroke = TRUE,
   color = "#03F",
   weight = 5,
@@ -688,6 +961,8 @@ addPolygons = function(
   smoothFactor = 1.0,
   noClip = FALSE,
   popup = NULL,
+  label = NULL,
+  labelOptions = NULL,
   options = pathOptions(),
   data = getMapData(map)
 ) {
@@ -697,14 +972,14 @@ addPolygons = function(
     dashArray = dashArray, smoothFactor = smoothFactor, noClip = noClip
   ))
   pgons = derivePolygons(data, lng, lat, missing(lng), missing(lat), "addPolygons")
-  invokeMethod(map, data, 'addPolygons', pgons, layerId, options, popup) %>%
+  invokeMethod(map, data, 'addPolygons', pgons, layerId, group, options, popup, safeLabel(label, data), labelOptions) %>%
     expandLimitsBbox(pgons)
 }
 
 #' @rdname remove
 #' @export
 removeShape = function(map, layerId) {
-  invokeMethod(map, NULL, 'removeShape', layerId)
+  invokeMethod(map, getMapData(map), 'removeShape', layerId)
 }
 
 #' @rdname remove
@@ -713,21 +988,96 @@ clearShapes = function(map) {
   invokeMethod(map, NULL, 'clearShapes')
 }
 
-#' @param geojson a GeoJSON list
+#' @param geojson a GeoJSON list, or character vector of length 1
 #' @describeIn map-layers Add GeoJSON layers to the map
 #' @export
-addGeoJSON = function(map, geojson, layerId = NULL) {
-  invokeMethod(map, getMapData(map), 'addGeoJSON', geojson, layerId)
+addGeoJSON = function(map, geojson, layerId = NULL, group = NULL,
+  stroke = TRUE,
+  color = "#03F",
+  weight = 5,
+  opacity = 0.5,
+  fill = TRUE,
+  fillColor = color,
+  fillOpacity = 0.2,
+  dashArray = NULL,
+  smoothFactor = 1.0,
+  noClip = FALSE,
+  options = pathOptions()
+) {
+  options = c(options, list(
+    stroke = stroke, color = color, weight = weight, opacity = opacity,
+    fill = fill, fillColor = fillColor, fillOpacity = fillOpacity,
+    dashArray = dashArray, smoothFactor = smoothFactor, noClip = noClip
+  ))
+  invokeMethod(map, getMapData(map), 'addGeoJSON', geojson, layerId, group, options)
 }
 
 #' @rdname remove
 #' @export
 removeGeoJSON = function(map, layerId) {
-  invokeMethod(map, NULL, 'removeGeoJSON', layerId)
+  invokeMethod(map, getMapData(map), 'removeGeoJSON', layerId)
 }
 
 #' @rdname remove
 #' @export
 clearGeoJSON = function(map) {
   invokeMethod(map, NULL, 'clearGeoJSON')
+}
+
+#' Add UI controls to switch layers on and off
+#'
+#' Uses Leaflet's built-in
+#' \href{http://leafletjs.com/reference.html#control-layers}{layers control}
+#' feature to allow users to choose one of several base layers, and to choose
+#' any number of overlay layers to view.
+#'
+#' @param map the map to add the layers control to
+#' @param baseGroups character vector where each element is the name of a group.
+#'   The user will be able to choose one base group (only) at a time. This is
+#'   most commonly used for mostly-opaque tile layers.
+#' @param overlayGroups character vector where each element is the name of a
+#'   group. The user can turn each overlay group on or off independently.
+#' @param position position of control: 'topleft', 'topright', 'bottomleft', or
+#'   'bottomright'
+#' @param options a list of additional options, intended to be provided by
+#'   a call to \code{layersControlOptions}
+#'
+#' @examples
+#' \donttest{
+#' leaflet() %>%
+#'   addTiles(group = "OpenStreetMap") %>%
+#'   addProviderTiles("Stamen.Toner", group = "Toner by Stamen") %>%
+#'   addMarkers(runif(20, -75, -74), runif(20, 41, 42), group = "Markers") %>%
+#'   addLayersControl(
+#'     baseGroups = c("OpenStreetMap", "Toner by Stamen"),
+#'     overlayGroups = c("Markers")
+#'   )
+#' }
+#'
+#' @export
+addLayersControl = function(map,
+  baseGroups = character(0), overlayGroups = character(0),
+  position = c('topright', 'bottomright', 'bottomleft', 'topleft'),
+  options = layersControlOptions()) {
+
+  options = c(options, list(position = match.arg(position)))
+  invokeMethod(map, getMapData(map), 'addLayersControl', baseGroups,
+    overlayGroups, options)
+}
+
+#' @rdname addLayersControl
+#' @param collapsed if \code{TRUE} (the default), the layers control will be
+#'   rendered as an icon that expands when hovered over. Set to \code{FALSE}
+#'   to have the layers control always appear in its expanded state.
+#' @param autoZIndex if \code{TRUE}, the control will automatically maintain
+#'   the z-order of its various groups as overlays are switched on and off.
+#' @export
+layersControlOptions = function(collapsed = TRUE, autoZIndex = TRUE) {
+  list(collapsed = collapsed, autoZIndex = autoZIndex)
+}
+
+#' @rdname addLayersControl
+#' @export
+removeLayersControl = function(map) {
+  invokeMethod(map, NULL, 'removeLayersControl')
 }

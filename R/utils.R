@@ -125,6 +125,11 @@ invokeMethod = function(map, data, method, ...) {
 #' @export
 leafletProxy <- function(mapId, session = shiny::getDefaultReactiveDomain(),
   data = NULL, deferUntilFlush = TRUE) {
+
+  if (is.null(session)) {
+    stop("leafletProxy must be called from the server function of a Shiny app")
+  }
+
   structure(
     list(
       session = session,
@@ -174,7 +179,7 @@ invokeRemote = function(map, method, args = list()) {
 
   sess <- map$session
   if (map$deferUntilFlush) {
-    if (packageVersion("shiny") < "0.12.0.9002") {
+    if (packageVersion("shiny") < "0.12.1.9000") {
 
       # See comment on sessionFlushQueue.
 
@@ -212,6 +217,7 @@ invokeRemote = function(map, method, args = list()) {
   } else {
     sess$sendCustomMessage("leaflet-calls", msg)
   }
+  map
 }
 
 # A helper function to generate the body of function(x, y) list(x = x, y = y),

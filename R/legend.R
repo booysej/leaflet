@@ -45,6 +45,7 @@
 #'   by default; you can either use the helper function \code{labelFormat()}, or
 #'   write your own function)
 #' @param title the legend title
+#' @param className extra CSS classes to append to the control, space separated
 #' @param layerId the ID of the legend; subsequent calls to \code{addLegend}
 #'   or \code{addControl} with the same \code{layerId} will replace this
 #'   legend. The ID can also be used with \code{removeControl}.
@@ -53,7 +54,7 @@
 addLegend = function(
   map, position = c('topright', 'bottomright', 'bottomleft', 'topleft'),
   pal, values, na.label = 'NA', bins = 7, colors, opacity = 0.5, labels,
-  labFormat = labelFormat(), title = deparse(substitute(values)),
+  labFormat = labelFormat(), title = NULL, className = "info legend",
   layerId = NULL
 ) {
   position = match.arg(position)
@@ -71,6 +72,10 @@ addLegend = function(
     type = attr(pal, 'colorType', exact = TRUE)
     args = attr(pal, 'colorArgs', exact = TRUE)
     na.color = args$na.color
+    # If na.color is transparent, don't show it on the legend
+    if (!is.null(na.color) && col2rgb(na.color, alpha = TRUE)[[4]] == 0) {
+      na.color = NULL
+    }
     if (type != 'numeric' && !missing(bins))
       warning("'bins' is ignored because the palette type is not numeric")
 
@@ -94,14 +99,10 @@ addLegend = function(
       #  |   +   |   +   |   +  ...  +   |
       # here |+| denotes a table row, and there are n rows
 
-      # first, we draw the "cuts" vector in a <table> column (with dashes in
-      # front of labels); then, we draw the color gradient on the left of the
-      # column in a <span>; finally, we adjust the height and top margin of the
-      # <span> so that "cuts" points to the correct positions on the <span>
-      extra = c(
-        (.5 - p[1] / (p[2] - p[1])),  # top margin % of the color gradient span
-        (n - 1) + (p[1] + 1 - p[n]) / (p[2] - p[1])  # height of color gradient
-      ) / n
+      # Since min and max may exceed the limits of the cut points, the client
+      # needs to know the first and last cut points in order to place the tick
+      # marks properly relative to the gradient.
+      extra = list(p_1 = p[1], p_n = p[n])
       # syntax for the color gradient: linear-gradient(start-color, color1 p1%,
       # color2 p2%, ..., colorn pn%, end-color])
       p = c('', paste0(100 * p, '%'), '')
@@ -146,7 +147,7 @@ addLegend = function(
     colors = I(unname(colors)), labels = I(unname(labels)),
     na_color = na.color, na_label = na.label, opacity = opacity,
     position = position, type = type, title = title, extra = extra,
-    layerId = layerId
+    layerId = layerId, className = className
   )
   invokeMethod(map, getMapData(map), "addLegend", legend)
 }
