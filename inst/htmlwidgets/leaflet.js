@@ -1589,6 +1589,16 @@ d3.selectAll("input").on("click", function(){
     });
   };
 
+
+  methods.addImageOverlay = function(uri, south,west,north,east) {
+    var imageUrl = uri;
+    var southWest = L.latLng(south, west),
+    northEast = L.latLng(north, east),
+    bounds = L.latLngBounds(southWest, northEast);
+
+    L.imageOverlay(imageUrl, bounds).addTo(this);
+  }
+
   methods.addRasterImage = function(uri, bounds, opacity, attribution, layerId, group) {
     // uri is a data URI containing an image. We want to paint this image as a
     // layer at (top-left) bounds[0] to (bottom-right) bounds[1].
