@@ -24,6 +24,9 @@
 #' @example inst/examples/leaflet.R
 #' @export
 leaflet = function(data = NULL, width = NULL, height = NULL, padding = 0) {
+
+  print("hi");
+
   htmlwidgets::createWidget(
     'leaflet',
     structure(

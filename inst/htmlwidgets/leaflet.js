@@ -864,7 +864,7 @@ var dataframe = (function() {
   };
 
   methods.hideArrows = function(mapname,behaviour,hideid) {
-    var map = $("#"+mapname).data('leaflet-map')
+    //var map = this; // $("#"+mapname).data('leaflet-map')
 
      var svg = d3.select("#"+mapname).select("svg"),
         linklayer = svg.selectAll("g").filter("g[id='ll']"),
@@ -886,10 +886,16 @@ var dataframe = (function() {
 
   methods.showArrows = function(mapname,jsonfile,linkfile,behaviour,showid) {
 
-    var map = $("#"+mapname).data('leaflet-map')
+    //var d = $("#"+mapname)
+  //  console.log(this)
+
+    var map = this; //$("#"+mapname) //.data('leaflet-map')
+
+    //alert('there:'+map);
     // Initialize the SVG layer
     map._initPathRoot()
-    console.log(map._container.id)
+    //map['_initPathRoot']()
+    //console.log(map._container.id)
 
 
   // Setup svg element to work with
