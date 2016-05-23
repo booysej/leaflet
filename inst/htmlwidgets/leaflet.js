@@ -1002,6 +1002,7 @@ var dataframe = (function() {
       .append("textPath")
       .attr('startOffset', '70%')
       .attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
+      .attr('target', '_parent')
       .text(function(d){  return d.text.replace("%flow", d.flow);  })
 
 
@@ -1152,6 +1153,7 @@ var dataframe = (function() {
       .append("textPath")
       .attr('startOffset', '90%')
       .attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
+      .attr('target', '_parent')
       .text(function(d){  return d.text.replace("%flow", d.flow)   })
 
 
