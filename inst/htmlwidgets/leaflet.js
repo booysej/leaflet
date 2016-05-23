@@ -899,11 +899,9 @@ var dataframe = (function() {
 
 
   // Setup svg element to work with
-  var svg = d3.select("#"+mapname).select("svg"),
-    linklayer = svg.append("g").attr("id", "ll"),
-    nodelayer = svg.append("g").attr("id", "nl");
+  var svg = d3.select("#"+mapname).select("svg");
 
-    var defs = svg.append('defs')
+  var defs = svg.append('defs')
 
     defs.append("marker")
         .attr('id',"markerArrow")
@@ -917,7 +915,17 @@ var dataframe = (function() {
         .append("svg:path")
         .attr("d", "M2,2 L2,14 L12,8 L2,2")
         .attr("class", "thearrow")
-        .attr("style", "fill: #000000;");
+        .attr("style", "fill: #000000;")
+        .append("clipPath") // NEW
+        .attr('id', 'scatterclip')
+        .append('rect')
+        .attr('class', 'cliprect')
+        .attr('width', 600)
+        .attr('height', 600);
+
+    var linklayer = svg.append("g").attr("id", "ll").attr("clip-path", "url(" + document.location.href + "#scatterclip)"),
+    nodelayer = svg.append("g").attr("id", "nl").attr("clip-path", "url(" + document.location.href + "#scatterclip)");
+
 
 
     // Load data asynchronosuly
@@ -1001,7 +1009,8 @@ var dataframe = (function() {
       .attr('text-anchor', 'middle')
       .append("textPath")
       .attr('startOffset', '70%')
-      .attr("xlink:href",function(d){  return 'url('+window.location.href +'#'+mapname+d.source+d.target+')' })
+      //.attr("xlink:href",function(d){  return 'url('+window.location.href +'#'+mapname+d.source+d.target+')' })
+      .attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
       .text(function(d){  return d.text.replace("%flow", d.flow);  })
 
 
@@ -1151,8 +1160,8 @@ var dataframe = (function() {
       .attr('text-anchor', 'end')
       .append("textPath")
       .attr('startOffset', '90%')
-      //.attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
-      .attr("xlink:href",function(d){  return 'url('+window.location.href +'#'+mapname+d.source+d.target+')' })
+      .attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
+      //.attr("xlink:href",function(d){  return 'url('+window.location.href.split("#")[0]+'#'+mapname+d.source+d.target+')'})
       .text(function(d){  return d.text.replace("%flow", d.flow)   })
 
 
