@@ -980,7 +980,7 @@ var dataframe = (function() {
     var tt = thet.append("text")
      // .style("transform","rotate(180deg)")
      //  .attr("transform", function(d, i) { return "translate(" + x(i)+",0) rotate(-45," + x(1)+"," + 0+") "; })
-     /* .attr('transform', function(d,i){
+      .attr('transform', function(d,i){
           //var source = map.latLngToLayerPoint(d.source_coords),
           //    target = map.latLngToLayerPoint(d.target_coords);
 
@@ -996,13 +996,12 @@ var dataframe = (function() {
           } else {
             return('');
           }
-        }) */
+        })
       .style("font-size", "5px")
       .attr('text-anchor', 'middle')
       .append("textPath")
       .attr('startOffset', '70%')
       .attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
-      .attr('target', '_parent')
       .text(function(d){  return d.text.replace("%flow", d.flow);  })
 
 
@@ -1133,7 +1132,7 @@ var dataframe = (function() {
     thet.append("text")
       .attr("class","thetext")
       .style("font-size", "15px")
-    /*  .attr('transform', function(d,i){
+      .attr('transform', function(d,i){
           //var source = map.latLngToLayerPoint(d.source_coords),
           //    target = map.latLngToLayerPoint(d.target_coords);
 
@@ -1148,12 +1147,11 @@ var dataframe = (function() {
           } else {
             return('');
           }
-        }) */
+        })
       .attr('text-anchor', 'end')
       .append("textPath")
       .attr('startOffset', '90%')
       .attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
-      .attr('target', '_parent')
       .text(function(d){  return d.text.replace("%flow", d.flow)   })
 
 
