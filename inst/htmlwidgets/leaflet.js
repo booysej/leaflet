@@ -980,7 +980,7 @@ var dataframe = (function() {
     var tt = thet.append("text")
      // .style("transform","rotate(180deg)")
      //  .attr("transform", function(d, i) { return "translate(" + x(i)+",0) rotate(-45," + x(1)+"," + 0+") "; })
-      .attr('transform', function(d,i){
+     /* .attr('transform', function(d,i){
           //var source = map.latLngToLayerPoint(d.source_coords),
           //    target = map.latLngToLayerPoint(d.target_coords);
 
@@ -996,7 +996,7 @@ var dataframe = (function() {
           } else {
             return('');
           }
-        })
+        }) */
       .style("font-size", "5px")
       .attr('text-anchor', 'middle')
       .append("textPath")
@@ -1132,7 +1132,7 @@ var dataframe = (function() {
     thet.append("text")
       .attr("class","thetext")
       .style("font-size", "15px")
-      .attr('transform', function(d,i){
+    /*  .attr('transform', function(d,i){
           //var source = map.latLngToLayerPoint(d.source_coords),
           //    target = map.latLngToLayerPoint(d.target_coords);
 
@@ -1147,7 +1147,7 @@ var dataframe = (function() {
           } else {
             return('');
           }
-        })
+        }) */
       .attr('text-anchor', 'end')
       .append("textPath")
       .attr('startOffset', '90%')
