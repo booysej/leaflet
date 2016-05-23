@@ -1001,7 +1001,7 @@ var dataframe = (function() {
       .attr('text-anchor', 'middle')
       .append("textPath")
       .attr('startOffset', '70%')
-      .attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
+      .attr("xlink:href",function(d){  return 'url('+window.location.href +'#'+mapname+d.source+d.target+')' })
       .text(function(d){  return d.text.replace("%flow", d.flow);  })
 
 
@@ -1151,7 +1151,8 @@ var dataframe = (function() {
       .attr('text-anchor', 'end')
       .append("textPath")
       .attr('startOffset', '90%')
-      .attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
+      //.attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
+      .attr("xlink:href",function(d){  return 'url('+window.location.href +'#'+mapname+d.source+d.target+')' })
       .text(function(d){  return d.text.replace("%flow", d.flow)   })
 
 
