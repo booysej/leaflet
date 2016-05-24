@@ -916,12 +916,12 @@ var dataframe = (function() {
         .attr("d", "M2,2 L2,14 L12,8 L2,2")
         .attr("class", "thearrow")
         .attr("style", "fill: #000000;")
-        .append("clipPath") // NEW
-        .attr('id', 'scatterclip')
-        .append('rect')
-        .attr('class', 'cliprect')
-        .attr('width', 600)
-        .attr('height', 600);
+        //.append("clipPath") // NEW
+        //.attr('id', 'scatterclip')
+        //.append('rect')
+        //.attr('class', 'cliprect')
+        //.attr('width', 600)
+        //.attr('height', 600);
 
     var linklayer = svg.append("g").attr("id", "ll").attr("clip-path", "url(" + document.location.href + "#scatterclip)"),
     nodelayer = svg.append("g").attr("id", "nl").attr("clip-path", "url(" + document.location.href + "#scatterclip)");
@@ -1009,9 +1009,9 @@ var dataframe = (function() {
       .attr('text-anchor', 'middle')
       .append("textPath")
       .attr('startOffset', '70%')
-      .attr("clip-path", "url(" + window.location.href.split("#")[0]+ "#scatterclip)")
-      //.attr("xlink:href",function(d){  return 'url('+window.location.href +'#'+mapname+d.source+d.target+')' })
-      .attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
+      //.attr("clip-path", "url(" + window.location.href.split("#")[0]+ "#scatterclip)")
+      .attr("xlink:href",function(d){  return 'url('+location.href +'#'+mapname+d.source+d.target+')' })
+      //.attr("xlink:href",function(d){  return 'https://eohshiny.shinyapps.io/BOSA/#'+mapname+d.source+d.target})
       .text(function(d){  return d.text.replace("%flow", d.flow);  })
 
 
@@ -1161,8 +1161,9 @@ var dataframe = (function() {
       .attr('text-anchor', 'end')
       .append("textPath")
       .attr('startOffset', '90%')
-      .attr("clip-path", "url(" + window.location.href.split("#")[0] + "#scatterclip)")
-      .attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
+      //.attr("clip-path", "url(" + window.location.href.split("#")[0] + "#scatterclip)")
+      //.attr("xlink:href",function(d){  return '#'+mapname+d.source+d.target})
+      .attr("xlink:href",function(d){  return 'url('+location.href +'#'+mapname+d.source+d.target+')' })
       //.attr("xlink:href",function(d){  return 'url('+window.location.href.split("#")[0]+'#'+mapname+d.source+d.target+')'})
       .text(function(d){  return d.text.replace("%flow", d.flow)   })
 
