@@ -989,11 +989,11 @@ var dataframe = (function() {
      // .style("transform","rotate(180deg)")
      //  .attr("transform", function(d, i) { return "translate(" + x(i)+",0) rotate(-45," + x(1)+"," + 0+") "; })
       .attr('transform', function(d,i){
-          //var source = map.latLngToLayerPoint(d.source_coords),
-          //    target = map.latLngToLayerPoint(d.target_coords);
+          var source = map.latLngToLayerPoint(d.source_coords),
+              target = map.latLngToLayerPoint(d.target_coords);
 
-          var source = map.latLngToContainerPoint(d.source_coords),
-              target = map.latLngToContainerPoint(d.target_coords);
+          //var source = map.latLngToContainerPoint(d.source_coords),
+          //    target = map.latLngToContainerPoint(d.target_coords);
 
          var mx =  (source.x+target.x)/2;
          var my = (source.y+target.y)/2;
@@ -1142,11 +1142,11 @@ var dataframe = (function() {
       .attr("class","thetext")
       .style("font-size", "15px")
       .attr('transform', function(d,i){
-          //var source = map.latLngToLayerPoint(d.source_coords),
-          //    target = map.latLngToLayerPoint(d.target_coords);
+          var source = map.latLngToLayerPoint(d.source_coords),
+              target = map.latLngToLayerPoint(d.target_coords);
 
-        var source = map.latLngToContainerPoint(d.source_coords),
-            target = map.latLngToContainerPoint(d.target_coords);
+        //var source = map.latLngToContainerPoint(d.source_coords),
+          //  target = map.latLngToContainerPoint(d.target_coords);
 
          var mx =  (source.x+target.x)/2;
          var my = (source.y+target.y)/2;
@@ -1185,11 +1185,11 @@ var dataframe = (function() {
         linklayer.selectAll("path").filter(".flows2").attr("d", spatialsankey.link2());
         linklayer.selectAll("path").filter(".thearrow").attr("d", "M2,2 L2,11 L10,6 L2,2");
         linklayer.selectAll("text").filter(".thetext").attr('transform', function(d,i){
-          //var source = map.latLngToLayerPoint(d.source_coords),
-          //    target = map.latLngToLayerPoint(d.target_coords);
+          var source = map.latLngToLayerPoint(d.source_coords),
+              target = map.latLngToLayerPoint(d.target_coords);
 
-          var source = map.latLngToContainerPoint(d.source_coords),
-              target = map.latLngToContainerPoint(d.target_coords);
+          //var source = map.latLngToContainerPoint(d.source_coords),
+          //    target = map.latLngToContainerPoint(d.target_coords);
 
           var mx = (source.x+target.x)/2;
           var my = (source.y+target.y)/2;
